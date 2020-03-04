@@ -16,7 +16,7 @@ if (isset($_POST['register-btn'])){
         $username_err = 'Please fill in this field';
     }
     if (isset($_POST['email'])){
-        $email = cleanData($_POST['email']);
+        $email = cleanData($_POST['email']);//add regex to check email validity
     }else{
         $email_err = 'Please fill in this field';
     }
@@ -37,20 +37,28 @@ if (isset($_POST['register-btn'])){
         $password_err = 'Your password is less than 8 characters';
 
         //add elseif to check for password strength using regex
-    }else{
-        $password = md5($password);
+    }elseif (!(preg_match('/[\'^£$!%&*()}{@#~?><>,|=_+¬-]/', $password))){ //regex pattern to check if password contains special characters
+        $password_err = 'Your password does not contain any special characters';
+
+    }else {
         //check if user is already registered
-
-
-
-
+        $sql = "SELECT * FROM `users` WHERE email = '$email'";//make usernames unique too?
+        $results = mysqli_query($conn,$sql);
+        if (mysqli_num_rows($results) > 0){
+            //this means that the user already exists so redirect to login
+            header('location:login.php?msg');
+            exit();
+        }
+        $password = md5($password);
         $sql = "INSERT INTO `users`(`id`, `username`, `email`, `password`) VALUES (NULL,'$username','$email','$password')";
         if (mysqli_query($conn,$sql)){
-            header('location:login.php');
+            header('location:login.php?msg');
         }else{
             echo "Data not added: ".mysqli_error($conn);
         }
     }
+
+
 
 }
 
@@ -58,20 +66,21 @@ function cleanData($data){
     $data = strtolower($data);
     $data = stripslashes($data);
     $data = htmlspecialchars($data);
-    //$data = mysqli_real_escape_string($data);
+    $data = mysqli_real_escape_string($data); // escapes special characters usually used for SQL statements, it helps prevent sql injections
 
     return $data;
 }
 
 ?>
-<body>
     <div class="container-fluid">
         <div class="row">
             <div class="col col-md-8 col-lg-8 col-xl-8">
-                <div class="container" style="background-color: #d3d3d3;"></div>
+                <div class="container">
+                    <ion-icon style="font-size: 500px; margin-left: 120px; color: dodgerblue" name="finger-print-outline"></ion-icon>
+                </div>
             </div>
             <div class="col col-md-4 col-lg-4 col-xl-4">
-                <div class="form-group container">
+                <div class="form-group container" style="padding: 50px 0px;">
                         <form action="<?php htmlspecialchars($_SERVER['PHP_SELF'])?>" method="POST">
                             <fieldset>
                                 <div class="form-group">
@@ -101,11 +110,6 @@ function cleanData($data){
             </div>
         </div>
     </div>
-
-<!-- Optional JavaScript -->
-<!-- jQuery first, then Popper.js, then Bootstrap JS -->
-<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
-</body>
-</html>
+<?php
+require 'footer.php';
+?>

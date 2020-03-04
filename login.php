@@ -7,8 +7,8 @@ $username = $password = '';
 $username_err = $password_err = '';
 
 if (isset($_POST['btn-login'])){
-    $username = $_POST['username'];
-    $password = $_POST['password'];
+    $username = mysqli_real_escape_string($_POST['username']);
+    $password = mysqli_real_escape_string($_POST['password']);
 
     if (empty($username)){
         $username_err = 'Please fill in your username';
@@ -23,7 +23,9 @@ if (isset($_POST['btn-login'])){
         if (mysqli_num_rows($results) > 0){
             //extract data from the results from db query
             while ($rows = mysqli_fetch_assoc($results)){
-                $id = $rows['id'];
+                session_start();
+                $_SESSION['id'] = $rows['id'];
+                $_SESSION['logged_in'] = true;
             }
             header('location:index.php');
         }else{
@@ -42,20 +44,30 @@ if (isset($_POST['btn-login'])){
 ?>
 
 <body>
+<?php
+    if (isset($_GET['msg'])){
+        echo "
+            <div class=\"alert alert-primary\" role=\"alert\">
+                You are already registered, please login here!
+            </div>
+        
+        ";
+    }
+?>
     <div class="container-fluid">
         <div class="row">
             <div class="col col-md-8 col-lg-8 col-xl-8"></div>
             <div class="col col-md-4 col-lg-4 col-xl-4">
                 <div class="container">
-                    <div class="form-group container">
+                    <div class="form-group container" style="padding: 80px 0px; margin: 0 auto;">
                         <form action="<?php htmlspecialchars($_SERVER['PHP_SELF'])?>" method="POST">
                             <fieldset>
-                                <div class="form-group">
+                                <div class="form-group" style="padding: 15px 0px;">
                                     <label for="">Username</label>
                                     <input type="text" name="username" required class="form-control" placeholder="Username">
                                 </div>
 
-                                <div class="form-group">
+                                <div class="form-group" style="padding: 15px 0px;">
                                     <label for="">Password</label>
                                     <input type="password" name="password" required class="form-control" placeholder="Password">
                                 </div>
@@ -68,3 +80,6 @@ if (isset($_POST['btn-login'])){
         </div>
     </div>
 </body>
+<?php
+require 'footer.php';
+?>
