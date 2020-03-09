@@ -16,7 +16,7 @@ if (isset($_POST['register-btn'])){
         $username_err = 'Please fill in this field';
     }
     if (isset($_POST['email'])){
-        $email = cleanData($_POST['email']);//add regex to check email validity
+        $email = cleanData($_POST['email']);//add regex to check email validity?
     }else{
         $email_err = 'Please fill in this field';
     }
@@ -46,13 +46,22 @@ if (isset($_POST['register-btn'])){
         $results = mysqli_query($conn,$sql);
         if (mysqli_num_rows($results) > 0){
             //this means that the user already exists so redirect to login
-            header('location:login.php?msg');
+            header('location:login.php?msg');// the msg variable is set so as to inform the user that they are already registered and should just login
             exit();
         }
         $password = md5($password);
-        $sql = "INSERT INTO `users`(`id`, `username`, `email`, `password`) VALUES (NULL,'$username','$email','$password')";
+//      generate a unique hash to use for verification
+        $hash = md5(rand(0,1000));
+//        account activation message
+        $message = "
+            Thanks for signing up!
+            Your account has been created, you can activate it by clicking the following link
+            http://localhost/registration/verify.php?email=$email&hash=$hash ";
+        $sql = "INSERT INTO `users`(`id`, `username`, `email`, `password`,`hash`) VALUES (NULL,'$username','$email','$password','$hash')";
         if (mysqli_query($conn,$sql)){
-            header('location:login.php?msg');
+//            header('location:login.php');
+            sendMail($message,$email);
+            exit();
         }else{
             echo "Data not added: ".mysqli_error($conn);
         }
@@ -62,11 +71,38 @@ if (isset($_POST['register-btn'])){
 
 }
 
+function sendMail($message, $email){
+    require("PHPMailer-master/src/PHPMailer.php");
+    require("PHPMailer-master/src/SMTP.php");
+
+    $mail = new PHPMailer\PHPMailer\PHPMailer();
+    $mail->IsSMTP(); // enable SMTP
+
+    $mail->SMTPDebug = 0; // debugging: 1 = errors and messages, 2 = messages only
+    $mail->SMTPAuth = true; // authentication enabled
+    $mail->SMTPSecure = 'ssl'; // secure transfer enabled REQUIRED for Gmail
+    $mail->Host = "smtp.gmail.com";
+    $mail->Port = 465; // or 587
+    $mail->IsHTML(true);
+    $mail->Username = "pythonapps17@gmail.com";
+    $mail->Password = "***************";
+    $mail->SetFrom("pythonapps17@gmail.com");
+    $mail->Subject = "Account Activation";
+    $mail->Body = $message;
+    $mail->AddAddress($email);
+
+    if(!$mail->Send()) {
+        echo "Mailer Error: " . $mail->ErrorInfo;
+    } else {
+        echo "Please check your email for account activation instructions.";
+    }
+}
+
 function cleanData($data){
     $data = strtolower($data);
     $data = stripslashes($data);
     $data = htmlspecialchars($data);
-    $data = mysqli_real_escape_string($data); // escapes special characters usually used for SQL statements, it helps prevent sql injections
+    //$data = mysqli_real_escape_string($data); // escapes special characters usually used for SQL statements, it helps prevent sql injections
 
     return $data;
 }

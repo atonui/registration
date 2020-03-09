@@ -7,8 +7,8 @@ $username = $password = '';
 $username_err = $password_err = '';
 
 if (isset($_POST['btn-login'])){
-    $username = mysqli_real_escape_string($_POST['username']);
-    $password = mysqli_real_escape_string($_POST['password']);
+    $username = $_POST['username'];
+    $password = $_POST['password'];
 
     if (empty($username)){
         $username_err = 'Please fill in your username';
@@ -16,11 +16,11 @@ if (isset($_POST['btn-login'])){
         $password_err = 'Please enter your password';
     }else{
         $password = md5($password);
-        $sql = "SELECT `id` FROM `users` WHERE username = '$username' AND password = '$password'";
+        $sql = "SELECT `id`,`active` FROM `users` WHERE username = '$username' AND password = '$password'"; //select active from table, if set to 1 the proceed, if set to 0 then activate account
         //results from db come as a table with rows
         $results = mysqli_query($conn,$sql);
 
-        if (mysqli_num_rows($results) > 0){
+        if (mysqli_num_rows($results) > 0 && mysqli_fetch_assoc($results)['active'] == 1){
             //extract data from the results from db query
             while ($rows = mysqli_fetch_assoc($results)){
                 session_start();
@@ -28,6 +28,16 @@ if (isset($_POST['btn-login'])){
                 $_SESSION['logged_in'] = true;
             }
             header('location:index.php');
+        }elseif (!isset(mysqli_fetch_assoc($results)['active'])){
+//            user has not confirmed their email address
+            echo "
+                <div class=\"alert alert-warning alert-dismissible fade show\" role=\"alert\">
+                 You have not confirmed your email address. Please check your inbox for instructions.
+                  <button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">
+                    <span aria-hidden=\"true\">&times;</span>
+                  </button>
+                </div>
+            ";
         }else{
             //register user
             echo "
