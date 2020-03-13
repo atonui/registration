@@ -1,6 +1,7 @@
 <?php
 require 'config.php';
 require 'header.php';
+require 'mail.php';
 
 $username = $email = $password = $confirm_password = '';
 
@@ -69,33 +70,6 @@ if (isset($_POST['register-btn'])){
 
 
 
-}
-
-function sendMail($message, $email){
-    require("PHPMailer-master/src/PHPMailer.php");
-    require("PHPMailer-master/src/SMTP.php");
-
-    $mail = new PHPMailer\PHPMailer\PHPMailer();
-    $mail->IsSMTP(); // enable SMTP
-
-    $mail->SMTPDebug = 0; // debugging: 1 = errors and messages, 2 = messages only
-    $mail->SMTPAuth = true; // authentication enabled
-    $mail->SMTPSecure = 'ssl'; // secure transfer enabled REQUIRED for Gmail
-    $mail->Host = "smtp.gmail.com";
-    $mail->Port = 465; // or 587
-    $mail->IsHTML(true);
-    $mail->Username = "pythonapps17@gmail.com";
-    $mail->Password = "***************";
-    $mail->SetFrom("pythonapps17@gmail.com");
-    $mail->Subject = "Account Activation";
-    $mail->Body = $message;
-    $mail->AddAddress($email);
-
-    if(!$mail->Send()) {
-        echo "Mailer Error: " . $mail->ErrorInfo;
-    } else {
-        echo "Please check your email for account activation instructions.";
-    }
 }
 
 function cleanData($data){
