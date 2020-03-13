@@ -14,13 +14,13 @@ if (isset($_POST['btn-login'])){
         $username_err = 'Please fill in your username';
     }elseif(empty($password)){
         $password_err = 'Please enter your password';
-    }else{
+    }else {
         $password = md5($password);
         $sql = "SELECT `id`,`active` FROM `users` WHERE username = '$username' AND password = '$password'"; //select active from table, if set to 1 the proceed, if set to 0 then activate account
         //results from db come as a table with rows
-        $results = mysqli_query($conn,$sql);
-
-        if (mysqli_num_rows($results) > 0 && mysqli_fetch_assoc($results)['active'] == 1){
+        $results = mysqli_query($conn, $sql);
+    }
+        if (mysqli_num_rows($results) > 0 && (mysqli_fetch_assoc($results))['active'] == 1){
             //extract data from the results from db query
             while ($rows = mysqli_fetch_assoc($results)){
                 session_start();
@@ -28,7 +28,10 @@ if (isset($_POST['btn-login'])){
                 $_SESSION['logged_in'] = true;
             }
             header('location:index.php');
-        }elseif (!isset(mysqli_fetch_assoc($results)['active'])){
+        }elseif (empty(mysqli_fetch_assoc($results)['password'])){  //user entered the wrong password
+            $password_err = "You entered the wrong password, please try again.";
+        }
+        elseif (!isset(mysqli_fetch_assoc($results)['active'])){
 //            user has not confirmed their email address
             echo "
                 <div class=\"alert alert-warning alert-dismissible fade show\" role=\"alert\">
@@ -39,7 +42,7 @@ if (isset($_POST['btn-login'])){
                 </div>
             ";
         }else{
-            //register user
+            //user is not registered so register user
             echo "
                 <div class=\"alert alert-warning alert-dismissible fade show\" role=\"alert\">
                  You are not a registered user. Please register <a href='signup.php'>Here</a>
@@ -49,7 +52,6 @@ if (isset($_POST['btn-login'])){
                 </div>
             ";
         }
-    }
 }
 ?>
 
@@ -73,15 +75,18 @@ if (isset($_POST['btn-login'])){
                         <form action="<?php htmlspecialchars($_SERVER['PHP_SELF'])?>" method="POST">
                             <fieldset>
                                 <div class="form-group" style="padding: 15px 0px;">
+                                    <small style="color:orangered!important;" class="text-muted"><?php echo $username_err?></small><br>
                                     <label for="">Username</label>
                                     <input type="text" name="username" required class="form-control" placeholder="Username">
                                 </div>
 
                                 <div class="form-group" style="padding: 15px 0px;">
+                                    <small style="color:orangered!important;" class="text-muted"><?php echo $password_err?></small><br>
                                     <label for="">Password</label>
                                     <input type="password" name="password" required class="form-control" placeholder="Password">
                                 </div>
-                                <button class="btn btn-block btn-info" name="btn-login">Log In</button>
+                                <button class="btn btn-block btn-info" name="btn-login">Log In</button><br>
+                                <a href="reset_password.php">Forgot password?</a>
                             </fieldset>
                         </form>
                     </div>
