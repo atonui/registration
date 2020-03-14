@@ -31,16 +31,8 @@ if (isset($_POST['register-btn'])){
     }else{
         $confirm_password_err = 'Please fill in this field';
     }
-
-    if ($password != $confirm_password){
-        $confirm_password_err = 'Oops! Your passwords do not seem to match';
-    }elseif (strlen($password) < 8){
-        $password_err = 'Your password is less than 8 characters';
-
-        //add elseif to check for password strength using regex
-    }elseif (!(preg_match('/[\'^£$!%&*()}{@#~?><>,|=_+¬-]/', $password))){ //regex pattern to check if password contains special characters
-        $password_err = 'Your password does not contain any special characters';
-
+    if (!empty(passwordChecker($password,$confirm_password))){
+        $password_err = passwordChecker($password,$confirm_password);
     }else {
         //check if user is already registered
         $sql = "SELECT * FROM `users` WHERE email = '$email'";//make usernames unique too?
@@ -58,10 +50,11 @@ if (isset($_POST['register-btn'])){
             Thanks for signing up!
             Your account has been created, you can activate it by clicking the following link
             http://localhost/registration/verify.php?email=$email&hash=$hash ";
+        $subject = "Account Activation";
         $sql = "INSERT INTO `users`(`id`, `username`, `email`, `password`,`hash`) VALUES (NULL,'$username','$email','$password','$hash')";
         if (mysqli_query($conn,$sql)){
 //            header('location:login.php');
-            sendMail($message,$email);
+            sendMail($message,$email,$subject);
             exit();
         }else{
             echo "Data not added: ".mysqli_error($conn);
