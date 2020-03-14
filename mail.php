@@ -15,7 +15,7 @@ function sendMail($message, $email, $subject){
     $mail->Port = 465; // or 587
     $mail->IsHTML(true);
     $mail->Username = "pythonapps17@gmail.com";
-    $mail->Password = "leonileo2017";
+    $mail->Password = "**************";
     $mail->SetFrom("pythonapps17@gmail.com");
     $mail->Subject = $subject;
     $mail->Body = $message;
